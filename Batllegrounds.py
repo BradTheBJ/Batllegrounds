@@ -12,12 +12,26 @@ pygame.display.set_caption("Movable Square")
 # Define colors
 black = (0, 0, 0)
 white = (255, 255, 255)
+red = (255, 0, 0)
 
 # Define the square properties
 square_size = 50
 square_x = width // 2
 square_y = height - square_size  # Position the square at the bottom of the screen
 square_speed = 5
+
+# Define the WorldCuttingSlash properties
+WorldCuttingSlashSize = 70
+WorldCuttingSlashX = square_x
+WorldCuttingSlashY = height / 2
+WorldCuttingSlashSpeed = 10
+
+def WolrdCuttingSlashMovement():
+    pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashSize, WorldCuttingSlashSize))
+    while True:
+        WorldCuttingSlashX += WorldCuttingSlashSpeed
+        
+
 
 # Define border objects properties
 border_object_size = 50
@@ -41,6 +55,7 @@ while running:
     # Move the square
     if keys[pygame.K_a]:
         square_x -= square_speed
+
     if keys[pygame.K_d]:
         square_x += square_speed
 
