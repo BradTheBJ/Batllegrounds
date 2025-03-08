@@ -21,26 +21,36 @@ square_y = height - square_size  # Position the square at the bottom of the scre
 square_speed = 5
 
 # Define the WorldCuttingSlash properties
-WorldCuttingSlashSize = 70
+WorldCuttingSlashWidth = 70
 WorldCuttingSlashX = square_x
-WorldCuttingSlashY = height / 2
+WorldCuttingSlashY = 0  # Start at the top of the screen
 WorldCuttingSlashSpeed = 10
 
 def WolrdCuttingSlashMovement():
-    pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashSize, WorldCuttingSlashSize))
+    global WorldCuttingSlashX, square_x
     while True:
         WorldCuttingSlashX += WorldCuttingSlashSpeed
-        
-
+        window.fill(black)
+        pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashWidth, height))
+        pygame.display.flip()
+        pygame.time.Clock().tick(60)
+        if WorldCuttingSlashX >= right_border_x or WorldCuttingSlashX <= left_border_x:
+            break
 
 # Define border objects properties
 border_object_size = 50
 
+# Define the invisible borders with x values
+left_border_x = 0
+right_border_x = width - border_object_size
+top_border_x = 0
+bottom_border_x = 0
+
 # Define the invisible borders
-left_border = pygame.Rect(0, 0, border_object_size, height)
-right_border = pygame.Rect(width - border_object_size, 0, border_object_size, height)
-top_border = pygame.Rect(0, 0, width, border_object_size)
-bottom_border = pygame.Rect(0, height - border_object_size, width, border_object_size)
+left_border = pygame.Rect(left_border_x, 0, border_object_size, height)
+right_border = pygame.Rect(right_border_x, 0, border_object_size, height)
+top_border = pygame.Rect(top_border_x, 0, width, border_object_size)
+bottom_border = pygame.Rect(bottom_border_x, height - border_object_size, width, border_object_size)
 
 # Main game loop
 running = True
@@ -58,6 +68,9 @@ while running:
 
     if keys[pygame.K_d]:
         square_x += square_speed
+
+    if keys[pygame.K_g]:
+        WolrdCuttingSlashMovement()
 
     # Ensure the square stays within the screen bounds
     if square_x < left_border.width:
