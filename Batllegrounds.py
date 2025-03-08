@@ -16,7 +16,7 @@ red = (255, 0, 0)
 
 # Define the square properties
 square_size = 50
-square_x = width // 2
+square_x = 990
 square_y = height - square_size  # Position the square at the bottom of the screen
 square_speed = 5
 
@@ -28,8 +28,13 @@ WorldCuttingSlashSpeed = 10
 
 def WolrdCuttingSlashMovement():
     global WorldCuttingSlashX, square_x
+    WorldCuttingSlashX = square_x  # Set the initial position to the current square position
+    WorldCuttingSlashSpeed = 10
     while True:
-        WorldCuttingSlashX += WorldCuttingSlashSpeed
+        if square_x <= 990:
+            WorldCuttingSlashX += WorldCuttingSlashSpeed
+        else:
+            WorldCuttingSlashX -= WorldCuttingSlashSpeed
         window.fill(black)
         pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashWidth, height))
         pygame.display.flip()
