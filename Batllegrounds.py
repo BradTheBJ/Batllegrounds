@@ -18,7 +18,8 @@ red = (255, 0, 0)
 square_size = 50
 square_x = 990
 square_y = height - square_size  # Position the square at the bottom of the screen
-square_speed = 5
+TerminalVelocity = 10
+velocity = 0
 
 # Define the WorldCuttingSlash properties
 WorldCuttingSlashWidth = 70
@@ -57,6 +58,8 @@ right_border = pygame.Rect(right_border_x, 0, border_object_size, height)
 top_border = pygame.Rect(top_border_x, 0, width, border_object_size)
 bottom_border = pygame.Rect(bottom_border_x, height - border_object_size, width, border_object_size)
 
+KeyDown = False
+
 # Main game loop
 running = True
 while running:
@@ -64,15 +67,33 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    print(velocity)
+    print(KeyDown)
+
     # Get the keys pressed
     keys = pygame.key.get_pressed()
 
     # Move the square
     if keys[pygame.K_a]:
-        square_x -= square_speed
+        if velocity > -TerminalVelocity:  # Limit velocity in the negative direction
+            KeyDown = True
+            velocity -= 1
 
     if keys[pygame.K_d]:
-        square_x += square_speed
+        if velocity < TerminalVelocity:  # Corrected condition
+            KeyDown = True
+            velocity += 1
+
+    if not keys[pygame.K_a] and not keys[pygame.K_d]:
+        KeyDown = False
+
+    if not KeyDown and velocity != 0:
+        if velocity > 0:
+            velocity -= 1
+        elif velocity < 0:
+            velocity += 1
+
+    square_x += velocity  # Apply movement
 
     if keys[pygame.K_g]:
         WolrdCuttingSlashMovement()
