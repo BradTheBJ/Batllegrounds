@@ -1,7 +1,7 @@
 import pygame
 import sys
 from pynput.mouse import Listener
-import time  # To track the time for disabling player movement
+import time
 
 # Initialize Pygame
 pygame.init()
@@ -51,12 +51,11 @@ hitbox_start_time = 0
 
 # Stun properties
 stunned = False
-stun_start_time = 0
 stun_duration = 0.2  # Additional 0.2 seconds of stun after hitbox disappears
 
+# Attack logic
 def Attack():
     global square_x, hitbox_active, hitbox_start_time, HitBoxX
-
     # Spawn the hitbox in front of the player based on the direction
     if turn_right:
         HitBoxX = square_x + square_size  # Spawn to the right of the player
@@ -66,6 +65,7 @@ def Attack():
     hitbox_active = True
     hitbox_start_time = time.time()  # Start the timer when the hitbox spawns
 
+# Mouse click listener
 def on_click(x, y, button, pressed):
     if pressed:
         Attack()
@@ -74,6 +74,7 @@ def on_click(x, y, button, pressed):
 listener = Listener(on_click=on_click)
 listener.start()
 
+# Main game loop
 running = True
 while running:
     for event in pygame.event.get():
@@ -85,70 +86,71 @@ while running:
 
     # Check if the player is stunned
     if stunned:
-        # If the stun duration has passed, allow movement again
         if time.time() - stun_start_time > stun_duration:
-            stunned = False
+            stunned = False  # Unstun the player after stun duration
         else:
             velocity = 0  # Stop movement during stun
 
-    # Disable movement if hitbox is active and time has not passed
+    # If the hitbox is active, prevent movement
     if hitbox_active and time.time() - hitbox_start_time < 0.3:
         velocity = 0  # Disable movement while the hitbox is active
     else:
-        # Movement logic
-        if keys[pygame.K_a]:
-            if velocity > -TerminalVelocity:
-                velocity -= 0.5
-            turn_right = False
-            turn_left = True
-            moving = True
-
-        elif keys[pygame.K_d]:
-            if velocity < TerminalVelocity:
-                velocity += 0.5
-            turn_right = True
-            turn_left = False
-            moving = True
-
-        else:
-            velocity = 0  # Stop movement completely if no key is pressed
+        # Player movement logic (left-right)
+        if not stunned:  # Only allow movement if not stunned
+            if keys[pygame.K_a]:
+                velocity = max(velocity - 0.5, -TerminalVelocity)
+                turn_right = False
+                turn_left = True
+                moving = True
+            elif keys[pygame.K_d]:
+                velocity = min(velocity + 0.5, TerminalVelocity)
+                turn_right = True
+                turn_left = False
+                moving = True
+            else:
+                velocity = 0  # Stop movement completely if no key is pressed
 
     # Jump logic
     if keys[pygame.K_SPACE] and not jumping:
         jumping = True
-        jump_velocity = -Jump_Force
+        jump_velocity = -Jump_Force  # Initial jump push
 
     if jumping:
         square_y += jump_velocity
         jump_velocity += Gravity
-        if square_y >= 940:
+        if square_y >= 940:  # Land on the ground
             square_y = 940
             jumping = False
 
     # Horizontal movement
     square_x += velocity
-    square_x = max(left_border_x, min(square_x, right_border_x))
+    square_x = max(left_border_x, min(square_x, right_border_x))  # Stay in bounds
 
-    # Control animation frame timing
+    # Handle player animation frames
     if moving:
         frame_count += 1
         if frame_count >= animation_speed:
             player_frame = (player_frame + 1) % 9
             frame_count = 0
-            
+    else:
+        player_frame = 0
+
+    # Deactivate hitbox after 0.3 seconds and stun player for 0.2 seconds
+    if hitbox_active and time.time() - hitbox_start_time > 0.3:
+        hitbox_active = False
+        stunned = True
+        stun_start_time = time.time()  # Start the stun timer
+
     if keys[pygame.K_ESCAPE]:
         pygame.quit()
         sys.exit()
-        
-    else:
-        player_frame = 0
 
     # Rendering
     window.fill(black)
 
     # Draw the hitbox if it is active
     if hitbox_active:
-        pygame.draw.rect(window, white, (HitBoxX, square_y, HitBoxWidth, HitBoxHeight))  # White hitbox
+        pygame.draw.rect(window, white, (HitBoxX, square_y, HitBoxWidth, HitBoxHeight))
 
     # Draw the player
     if turn_right:
@@ -158,12 +160,6 @@ while running:
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
-
-    # After 0.3 seconds, deactivate the hitbox and apply stun
-    if hitbox_active and time.time() - hitbox_start_time > 0.3:
-        hitbox_active = False
-        stunned = True
-        stun_start_time = time.time()  # Start the stun timer
 
 pygame.quit()
 sys.exit()
