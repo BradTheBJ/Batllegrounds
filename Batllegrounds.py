@@ -10,112 +10,127 @@ window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Movable Square")
 
 # Define colors
-black = (0, 0, 0)
-white = (255, 255, 255)
-red = (255, 0, 0)
+black = "black"
+red = "red"
 
-# Define the square properties
-square_size = 50
-square_x = 990
-square_y = height - square_size  # Position the square at the bottom of the screen
-TerminalVelocity = 10
+# Player properties
+square_size = 120
+square_x = 300
+square_y = 940
+TerminalVelocity = 5
 velocity = 0
+Jump_Force = 25  # Max jump force per frame
+Gravity = 2  # Gravity acceleration
+jump_velocity = 0
+jumping = False
 
-# Define the WorldCuttingSlash properties
+# Load and scale images
+right_walking_img_list = [pygame.transform.scale(pygame.image.load(f"R{i}.png"), (square_size, square_size * 1.2)) for i
+                          in range(1, 10)]
+left_walking_img_list = [pygame.transform.scale(pygame.image.load(f"L{i}.png"), (square_size, square_size * 1.2)) for i
+                         in range(1, 10)]
+
+player_frame = 0
+animation_speed = 5
+frame_count = 0
+
+turn_right = True
+turn_left = False
+
+# WorldCuttingSlash properties
 WorldCuttingSlashWidth = 70
-WorldCuttingSlashX = square_x
-WorldCuttingSlashY = 0  # Start at the top of the screen
 WorldCuttingSlashSpeed = 10
 
+# Borders
+left_border_x = 0
+right_border_x = width - square_size
+
+
 def WolrdCuttingSlashMovement():
-    global WorldCuttingSlashX, square_x
-    WorldCuttingSlashX = square_x  # Set the initial position to the current square position
-    WorldCuttingSlashSpeed = 10
+    global square_x
+    WorldCuttingSlashX = square_x
     while True:
-        if square_x <= 990:
-            WorldCuttingSlashX += WorldCuttingSlashSpeed
-        else:
-            WorldCuttingSlashX -= WorldCuttingSlashSpeed
+        WorldCuttingSlashX += WorldCuttingSlashSpeed if square_x <= width // 2 else -WorldCuttingSlashSpeed
         window.fill(black)
-        pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashWidth, height))
+        if turn_right:
+            window.blit(right_walking_img_list[player_frame], (square_x, square_y))
+        else:
+            window.blit(left_walking_img_list[player_frame], (square_x, square_y))
+        pygame.draw.rect(window, red, (WorldCuttingSlashX, 0, WorldCuttingSlashWidth, height))
         pygame.display.flip()
         pygame.time.Clock().tick(60)
         if WorldCuttingSlashX >= right_border_x or WorldCuttingSlashX <= left_border_x:
             break
 
-# Define border objects properties
-border_object_size = 50
 
-# Define the invisible borders with x values
-left_border_x = 0
-right_border_x = width - border_object_size
-top_border_x = 0
-bottom_border_x = 0
-
-# Define the invisible borders
-left_border = pygame.Rect(left_border_x, 0, border_object_size, height)
-right_border = pygame.Rect(right_border_x, 0, border_object_size, height)
-top_border = pygame.Rect(top_border_x, 0, width, border_object_size)
-bottom_border = pygame.Rect(bottom_border_x, height - border_object_size, width, border_object_size)
-
-KeyDown = False
-
-# Main game loop
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    print(velocity)
-    print(KeyDown)
-
-    # Get the keys pressed
     keys = pygame.key.get_pressed()
+    moving = False
 
-    # Move the square
+    if keys[pygame.K_ESCAPE]:
+        pygame.quit()
+        sys.exit()
+
+    # Movement logic
     if keys[pygame.K_a]:
-        if velocity > -TerminalVelocity:  # Limit velocity in the negative direction
-            KeyDown = True
-            velocity -= 1
+        if velocity > -TerminalVelocity:
+            velocity -= 0.5
+        turn_right = False
+        turn_left = True
+        moving = True
+    elif keys[pygame.K_d]:
+        if velocity < TerminalVelocity:
+            velocity += 0.5
+        turn_right = True
+        turn_left = False
+        moving = True
+    else:
+        velocity = 0  # Stop movement completely if no key is pressed
 
-    if keys[pygame.K_d]:
-        if velocity < TerminalVelocity:  # Corrected condition
-            KeyDown = True
-            velocity += 1
+    # Jump logic
+    if keys[pygame.K_SPACE] and not jumping:
+        jumping = True
+        jump_velocity = -Jump_Force  # Initial jump push
 
-    if not keys[pygame.K_a] and not keys[pygame.K_d]:
-        KeyDown = False
+    if jumping:
+        square_y += jump_velocity  # Apply jump velocity
+        jump_velocity += Gravity  # Apply gravity
+        if square_y >= 940:  # Land on the ground
+            square_y = 940
+            jumping = False
 
-    if not KeyDown and velocity != 0:
-        if velocity > 0:
-            velocity -= 1
-        elif velocity < 0:
-            velocity += 1
+    # Horizontal movement
+    square_x += velocity
+    square_x = max(left_border_x, min(square_x, right_border_x))  # Stay in bounds
 
-    square_x += velocity  # Apply movement
-
+    # Trigger WorldCuttingSlash
     if keys[pygame.K_g]:
         WolrdCuttingSlashMovement()
 
-    # Ensure the square stays within the screen bounds
-    if square_x < left_border.width:
-        square_x = left_border.width
-    if square_x > width - square_size - right_border.width:
-        square_x = width - square_size - right_border.width
+    # Control animation frame timing
+    if moving:
+        frame_count += 1
+        if frame_count >= animation_speed:
+            player_frame = (player_frame + 1) % 9
+            frame_count = 0
+    else:
+        player_frame = 0
 
-    # Fill the window with black
+    # Rendering
     window.fill(black)
+    if turn_right:
+        window.blit(right_walking_img_list[player_frame], (square_x, square_y))
+    else:
+        window.blit(left_walking_img_list[player_frame], (square_x, square_y))
 
-    # Draw the square
-    pygame.draw.rect(window, white, (square_x, square_y, square_size, square_size))
-
-    # Update the display
     pygame.display.flip()
-
-    # Cap the frame rate
     pygame.time.Clock().tick(60)
 
-# Quit Pygame
 pygame.quit()
 sys.exit()
+
