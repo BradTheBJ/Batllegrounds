@@ -27,7 +27,6 @@ jumping = False
 # Load and scale images
 right_walking_img_list = [pygame.transform.scale(pygame.image.load(f"R{i}.png"), (square_size, square_size * 1.2)) for i
                           in range(1, 10)]
-
 left_walking_img_list = [pygame.transform.scale(pygame.image.load(f"L{i}.png"), (square_size, square_size * 1.2)) for i
                          in range(1, 10)]
 
@@ -47,21 +46,28 @@ left_border_x = 0
 right_border_x = width - square_size
 
 
-def WolrdCuttingSlashMovement():
+def WorldCuttingSlashMovement():
     global square_x
-    WorldCuttingSlashX = square_x
+
+    # Spawn in front of the player
+    if turn_right:
+        WorldCuttingSlashX = square_x + square_size  # Right side of player
+    else:
+        WorldCuttingSlashX = square_x - WorldCuttingSlashWidth  # Left side of player
+
     while True:
-        WorldCuttingSlashX += WorldCuttingSlashSpeed if square_x <= width // 2 else -WorldCuttingSlashSpeed
+        WorldCuttingSlashX += WorldCuttingSlashSpeed if turn_right else -WorldCuttingSlashSpeed
         window.fill(black)
-        
+
         if turn_right:
             window.blit(right_walking_img_list[player_frame], (square_x, square_y))
-            
         else:
             window.blit(left_walking_img_list[player_frame], (square_x, square_y))
+
         pygame.draw.rect(window, red, (WorldCuttingSlashX, 0, WorldCuttingSlashWidth, height))
         pygame.display.flip()
         pygame.time.Clock().tick(60)
+
         if WorldCuttingSlashX >= right_border_x or WorldCuttingSlashX <= left_border_x:
             break
 
@@ -86,14 +92,14 @@ while running:
         turn_right = False
         turn_left = True
         moving = True
-        
+
     elif keys[pygame.K_d]:
         if velocity < TerminalVelocity:
             velocity += 0.5
         turn_right = True
         turn_left = False
         moving = True
-        
+
     else:
         velocity = 0  # Stop movement completely if no key is pressed
 
@@ -115,7 +121,7 @@ while running:
 
     # Trigger WorldCuttingSlash
     if keys[pygame.K_g]:
-        WolrdCuttingSlashMovement()
+        WorldCuttingSlashMovement()
 
     # Control animation frame timing
     if moving:
@@ -130,7 +136,6 @@ while running:
     window.fill(black)
     if turn_right:
         window.blit(right_walking_img_list[player_frame], (square_x, square_y))
-        
     else:
         window.blit(left_walking_img_list[player_frame], (square_x, square_y))
 
