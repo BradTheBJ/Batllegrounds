@@ -15,6 +15,7 @@ pygame.display.set_caption("Movable Square")
 # Define colors
 black = "black"
 white = 255, 255, 255  # White color for the hitbox
+red = (255, 0, 0)
 
 # Player properties
 square_size = 120
@@ -76,6 +77,18 @@ def on_click(x, y, button, pressed):
 listener = Listener(on_click=on_click)
 listener.start()
 
+WorldCuttingSlashWidth = 70
+WorldCuttingSlashX = square_x
+WorldCuttingSlashY = 0  # Start at the top of the screen
+WorldCuttingSlashSpeed = 10
+world_cutting_slash_active = False
+
+def WolrdCuttingSlashMovement():
+    global WorldCuttingSlashX, world_cutting_slash_active
+    if not world_cutting_slash_active:
+        WorldCuttingSlashX = square_x  # Set the initial position to the current square position
+        world_cutting_slash_active = True
+
 # Main game loop
 running = True
 while running:
@@ -96,7 +109,7 @@ while running:
     # If the hitbox is active, prevent movement
     if hitbox_active and time.time() - hitbox_start_time < 0.3:
         velocity = 0  # Disable movement while the hitbox is active
-    else:
+    elif not world_cutting_slash_active:  # Prevent movement if World Cutting Slash is active
         # Player movement logic (left-right)
         if not stunned:  # Only allow movement if not stunned
             if keys[pygame.K_a]:
@@ -113,7 +126,7 @@ while running:
                 velocity = 0  # Stop movement completely if no key is pressed
 
     # Jump logic
-    if keys[pygame.K_SPACE] and not jumping:
+    if keys[pygame.K_SPACE] and not jumping and not world_cutting_slash_active:
         jumping = True
         jump_velocity = -Jump_Force  # Initial jump push
 
@@ -143,6 +156,18 @@ while running:
         stunned = True
         stun_start_time = time.time()  # Start the stun timer
 
+    if keys[pygame.K_g]:
+        WolrdCuttingSlashMovement()
+
+    # Update World Cutting Slash position
+    if world_cutting_slash_active:
+        if square_x <= 990:
+            WorldCuttingSlashX += WorldCuttingSlashSpeed
+        else:
+            WorldCuttingSlashX -= WorldCuttingSlashSpeed
+        if WorldCuttingSlashX >= right_border_x or WorldCuttingSlashX <= left_border_x:
+            world_cutting_slash_active = False
+
     if keys[pygame.K_ESCAPE]:
         pygame.quit()
         sys.exit()
@@ -159,6 +184,10 @@ while running:
         window.blit(right_walking_img_list[player_frame], (square_x, square_y))
     else:
         window.blit(left_walking_img_list[player_frame], (square_x, square_y))
+
+    # Draw the World Cutting Slash if it is active
+    if world_cutting_slash_active:
+        pygame.draw.rect(window, red, (WorldCuttingSlashX, WorldCuttingSlashY, WorldCuttingSlashWidth, height))
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
