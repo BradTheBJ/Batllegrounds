@@ -1,3 +1,4 @@
+import os
 import pygame
 import sys
 from pynput.mouse import Listener
@@ -27,8 +28,9 @@ jump_velocity = 0
 jumping = False
 
 # Load and scale images
-right_walking_img_list = [pygame.transform.scale(pygame.image.load(f"R{i}.png"), (square_size, square_size * 1.2)) for i in range(1, 10)]
-left_walking_img_list = [pygame.transform.scale(pygame.image.load(f"L{i}.png"), (square_size, square_size * 1.2)) for i in range(1, 10)]
+image_dir = os.path.dirname(__file__)  # Get the directory of the current script
+right_walking_img_list = [pygame.transform.scale(pygame.image.load(os.path.join(image_dir, f"R{i}.png")), (square_size, square_size * 1.2)) for i in range(1, 10)]
+left_walking_img_list = [pygame.transform.scale(pygame.image.load(os.path.join(image_dir, f"L{i}.png")), (square_size, square_size * 1.2)) for i in range(1, 10)]
 
 player_frame = 0
 animation_speed = 5
